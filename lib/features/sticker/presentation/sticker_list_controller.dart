@@ -67,4 +67,11 @@ class StickerListController extends _$StickerListController {
       await search('');
     }
   }
+
+  /// Deletes a sticker and refreshes the list.
+  Future<void> deleteSticker(Sticker sticker) async {
+    final repository = ref.read(stickerRepositoryProvider.notifier);
+    await repository.deleteSticker(id: sticker.id, path: sticker.filePath);
+    await search('');
+  }
 }

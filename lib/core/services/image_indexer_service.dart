@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:google_mlkit_image_labeling/google_mlkit_image_labeling.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:google_mlkit_translation/google_mlkit_translation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../features/sticker/data/sticker_repository.dart';
 
@@ -36,18 +37,40 @@ class ImageIndexerService {
     final inputImage = InputImage.fromFile(imageFile);
     final Set<String> keywords = {};
 
-    // 1. Image Labeling
+    // 1. Image Labeling & Translation
     final imageLabeler = ImageLabeler(options: ImageLabelerOptions());
+    final translator = OnDeviceTranslator(
+      sourceLanguage: TranslateLanguage.english,
+      targetLanguage: TranslateLanguage.italian,
+    );
+
     try {
+      // Ensure the translation model is available
+      final modelManager = OnDeviceTranslatorModelManager();
+      if (!await modelManager.isModelDownloaded(
+        TranslateLanguage.italian.bcpCode,
+      )) {
+        await modelManager.downloadModel(TranslateLanguage.italian.bcpCode);
+      }
+
       final labels = await imageLabeler.processImage(inputImage);
       for (final label in labels) {
-        keywords.add(label.label.toLowerCase());
+        final text = label.label.toLowerCase();
+        keywords.add(text); // English
+
+        try {
+          final translated = await translator.translateText(text);
+          keywords.add(translated.toLowerCase()); // Italian
+        } catch (e) {
+          print('Translation failed for $text: $e');
+        }
       }
     } catch (e) {
       // Log error or handle gracefully
       print('Error processing image labels: $e');
     } finally {
       imageLabeler.close();
+      translator.close();
     }
 
     // 2. Text Recognition (OCR)

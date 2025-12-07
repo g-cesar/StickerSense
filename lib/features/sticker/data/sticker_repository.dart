@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/database/database.dart';
@@ -65,23 +66,45 @@ class StickerRepository extends _$StickerRepository {
     // We join Stickers with SearchIndex on stickerId
     final queryStr = query.trim();
 
-    // Simple FTS match.
-    // Note: FTS5 match syntax can be complex.
-    // Here we use the standard MATCH operator on the content column.
-    return (state.select(state.stickers).join([
-            innerJoin(
-              state.searchIndex,
-              state.searchIndex.stickerId.equalsExp(state.stickers.id),
-            ),
-          ])
-          ..where(state.searchIndex.content.like('%$queryStr%'))
-          ..orderBy([
-            OrderingTerm(
-              expression: state.stickers.usageCount,
-              mode: OrderingMode.desc,
-            ),
-          ]))
-        .map((row) => row.readTable(state.stickers))
-        .get();
+    try {
+      // Simple FTS match.
+      // Note: FTS5 match syntax can be complex.
+      // Here we use the standard MATCH operator on the content column.
+      return await (state.select(state.stickers).join([
+              innerJoin(
+                state.searchIndex,
+                state.searchIndex.stickerId.equalsExp(state.stickers.id),
+              ),
+            ])
+            ..where(state.searchIndex.content.like('%$queryStr%'))
+            ..orderBy([
+              OrderingTerm(
+                expression: state.stickers.usageCount,
+                mode: OrderingMode.desc,
+              ),
+            ]))
+          .map((row) => row.readTable(state.stickers))
+          .get();
+    } catch (e) {
+      // Log error and return empty list to prevent crash
+      print('Error searching stickers: $e');
+      return [];
+    }
+  }
+
+  /// Deletes a sticker from the database and the filesystem.
+  Future<void> deleteSticker({required int id, required String path}) async {
+    return state.transaction(() async {
+      // 1. Delete from database
+      await (state.delete(state.stickers)..where((t) => t.id.equals(id))).go();
+      await (state.delete(state.searchIndex)
+        ..where((t) => t.stickerId.equals(id))).go();
+
+      // 2. Delete file
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    });
   }
 }

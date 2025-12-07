@@ -8,8 +8,13 @@ import '../../../../core/database/database.dart';
 /// If [stickers] is empty, it displays a placeholder message.
 class StickerMasonryGrid extends StatelessWidget {
   final List<Sticker> stickers;
+  final Function(Sticker) onStickerLongPress;
 
-  const StickerMasonryGrid({super.key, required this.stickers});
+  const StickerMasonryGrid({
+    super.key,
+    required this.stickers,
+    required this.onStickerLongPress,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,12 +32,15 @@ class StickerMasonryGrid extends StatelessWidget {
       padding: const EdgeInsets.all(8),
       itemBuilder: (context, index) {
         final sticker = stickers[index];
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Image.file(
-            File(sticker.filePath),
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
+        return GestureDetector(
+          onLongPress: () => onStickerLongPress(sticker),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.file(
+              File(sticker.filePath),
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
+            ),
           ),
         );
       },
