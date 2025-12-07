@@ -107,4 +107,18 @@ class StickerRepository extends _$StickerRepository {
       }
     });
   }
+
+  /// Fetches the indexed tags (keywords) for a specific sticker.
+  Future<List<String>> getTagsForSticker(int stickerId) async {
+    final query = state.select(state.searchIndex)
+      ..where((t) => t.stickerId.equals(stickerId));
+
+    final result = await query.getSingleOrNull();
+    if (result == null || result.content.isEmpty) {
+      return [];
+    }
+
+    // FTS content is space-separated
+    return result.content.split(' ');
+  }
 }

@@ -23,6 +23,11 @@ dependencies:
   google_mlkit_image_labeling: ^0.13.0
   google_mlkit_text_recognition: ^0.14.0
   google_mlkit_translation: ^0.12.0
+  google_mlkit_face_detection: ^0.12.0
+  
+  # AI
+  google_generative_ai: ^0.4.7
+  flutter_dotenv: ^5.1.0
   
   # Utilities
   path_provider: ^2.1.2
@@ -46,3 +51,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - .env

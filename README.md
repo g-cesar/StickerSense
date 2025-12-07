@@ -10,11 +10,19 @@
 
 ## ✨ Features
 
-- **Smart Indexing**: Uses Google ML Kit to analyze images and extract relevant tags (objects, text).
-- **Local-First**: All data and images are stored locally on your device. No cloud uploads, ensuring 100% privacy.
+- **Hybrid AI Indexing** 🤖: Combines **Google Gemini 2.5 (Flash)** for high-level semantic understanding with **on-device OCR** for text extraction.
+- **Smart Fallback**: Automatically reverts to local ML Kit (Labeling, Face Detection, Translation) if offline or API key is missing.
+- **Local-First Privacy**: All images stay on your device. Only metadata is processed by Gemini (if enabled), while local indexing ensures 100% offline functionality.
 - **Fast Search**: Built on SQLite (Drift) with FTS5 for lightning-fast full-text search capabilities.
 - **Custom Keyboard** (Coming Soon): Access your stickers directly from any chatting app via a custom system keyboard.
 - **Modern UI**: Clean, responsive layout built with Flutter and Riverpod.
+
+## 🔑 Setup (Gemini AI)
+
+1.  Get your API Key from [Google AI Studio](https://aistudio.google.com/).
+2.  Create a `.env` file in the root directory.
+3.  Add your key: `GEMINI_API_KEY=your_api_key_here`.
+
 
 ## 🛠️ Tech Stack
 

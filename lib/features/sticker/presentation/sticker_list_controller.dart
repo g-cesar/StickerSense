@@ -74,4 +74,10 @@ class StickerListController extends _$StickerListController {
     await repository.deleteSticker(id: sticker.id, path: sticker.filePath);
     await search('');
   }
+
+  /// Fetches tags for a given sticker.
+  Future<List<String>> getTags(int stickerId) async {
+    final repository = ref.read(stickerRepositoryProvider.notifier);
+    return repository.getTagsForSticker(stickerId);
+  }
 }

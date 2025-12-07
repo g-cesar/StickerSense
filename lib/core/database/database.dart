@@ -37,13 +37,11 @@ LazyDatabase _openConnection() {
   });
 }
 
+/// Global instance of the database to ensure it is created only once.
+final AppDatabase _dbInstance = AppDatabase();
+
 /// A Riverpod provider that exposes the singleton instance of [AppDatabase].
-///
-/// This provider automatically disposes the database connection when it is
-/// no longer needed.
-@riverpod
+@Riverpod(keepAlive: true)
 AppDatabase appDatabase(AppDatabaseRef ref) {
-  final db = AppDatabase();
-  ref.onDispose(db.close);
-  return db;
+  return _dbInstance;
 }

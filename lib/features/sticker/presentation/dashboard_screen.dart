@@ -57,31 +57,87 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               onStickerLongPress: (sticker) {
                 showDialog(
                   context: context,
-                  builder:
-                      (context) => AlertDialog(
-                        title: const Text('Elimina Sticker'),
-                        content: const Text(
-                          'Sei sicuro di voler eliminare questo sticker?',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Annulla'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              ref
-                                  .read(stickerListControllerProvider.notifier)
-                                  .deleteSticker(sticker);
-                              Navigator.pop(context);
-                            },
-                            child: const Text(
-                              'Elimina',
-                              style: TextStyle(color: Colors.red),
+                  builder: (context) {
+                    // Fetch tags when dialog builds
+                    final tagsFuture = ref
+                        .read(stickerListControllerProvider.notifier)
+                        .getTags(sticker.id);
+
+                    return AlertDialog(
+                      title: const Text('Dettagli Sticker'),
+                      content: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Tag rilevati:',
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 8),
+                            FutureBuilder<List<String>>(
+                              future: tagsFuture,
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                }
+                                if (snapshot.hasError) {
+                                  return const Text(
+                                    'Errore nel caricamento tag',
+                                  );
+                                }
+                                final tags = snapshot.data ?? [];
+                                if (tags.isEmpty) {
+                                  return const Text('Nessun tag trovato.');
+                                }
+                                return Wrap(
+                                  spacing: 8.0,
+                                  runSpacing: 4.0,
+                                  children:
+                                      tags
+                                          .map(
+                                            (tag) => Chip(
+                                              label: Text(tag),
+                                              backgroundColor:
+                                                  Theme.of(context)
+                                                      .colorScheme
+                                                      .surfaceContainerHighest,
+                                            ),
+                                          )
+                                          .toList(),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Sei sicuro di voler eliminare questo sticker?',
+                            ),
+                          ],
+                        ),
                       ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Chiudi'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            ref
+                                .read(stickerListControllerProvider.notifier)
+                                .deleteSticker(sticker);
+                            Navigator.pop(context);
+                          },
+                          child: const Text(
+                            'Elimina',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 );
               },
             ),
