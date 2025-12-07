@@ -12,7 +12,7 @@
 
 - **Hybrid AI Indexing** 🤖: Combines **Google Gemini 2.5 (Flash)** for high-level semantic understanding with **on-device OCR** for text extraction.
 - **Configurable Indexing Modes**:
-  - **"Più preciso, ma più lento"** (default): Uses only Gemini AI with rate limiting (5 RPM) for maximum accuracy.
+  - **"Più preciso, ma più lento"** (default): Uses only Gemini AI with rate limiting for maximum accuracy.
   - **"Veloce"**: Fast mode with automatic fallback to local ML Kit after quota limits.
 - **WhatsApp Import** 📥 (Android): One-tap import of your existing WhatsApp sticker collection with automatic AI tagging.
 - **Smart Fallback**: Automatically reverts to local ML Kit (Labeling, Face Detection, Translation) if offline or API key is missing.
@@ -27,7 +27,7 @@
 2.  Create a `.env` file in the root directory.
 3.  Add your key: `GEMINI_API_KEY=your_api_key_here`.
 
-> **Note**: The free tier (5 RPM, 250K TPM) is sufficient for personal use. The app automatically handles rate limiting when "Più preciso" mode is enabled.
+> **Note**: The free tier has usage limits. The app automatically handles rate limiting when "Più preciso" mode is enabled. For current limits, see [Google AI API Pricing](https://ai.google.dev/pricing).
 
 
 ## 🛠️ Tech Stack

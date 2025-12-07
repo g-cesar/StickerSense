@@ -7,7 +7,7 @@ part of 'sticker_list_controller.dart';
 // **************************************************************************
 
 String _$stickerListControllerHash() =>
-    r'1b048d8b593794897ec720562fb52ed96f94d238';
+    r'4fa45078c36bc21a74a672bafbf7a948fd6215ff';
 
 /// Manages the list of stickers displayed in the UI.
 ///

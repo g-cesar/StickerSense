@@ -37,31 +37,35 @@ class StickerListController extends _$StickerListController {
     state = await AsyncValue.guard(() => _fetchStickers(query));
   }
 
-  /// Opens the system image picker to import a new sticker.
+  /// Opens the system image picker to import new stickers.
   ///
   /// The process involves:
-  /// 1. Picking an image from the gallery.
-  /// 2. Copying the image to the application's document directory (persistent storage).
-  /// 3. Indexing the image using [ImageIndexerService] to generate keywords.
+  /// 1. Picking multiple images from the gallery.
+  /// 2. Copying each image to the application's document directory (persistent storage).
+  /// 3. Indexing each image using [ImageIndexerService] to generate keywords.
   /// 4. Refreshing the sticker list.
   Future<void> importImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFiles = await picker.pickMultiImage();
 
-    if (pickedFile != null) {
-      // 1. Copy image to app storage
-      // In real iOS app, we will use App Group container later.
-      // For now, use Application Documents.
+    if (pickedFiles.isNotEmpty) {
       final directory = await getApplicationDocumentsDirectory();
-      final uuid = const Uuid().v4();
-      final extension = p.extension(pickedFile.path);
-      final newPath = p.join(directory.path, '$uuid$extension');
-
-      final savedFile = await File(pickedFile.path).copy(newPath);
-
-      // 2. Index Image
       final indexer = ref.read(imageIndexerServiceProvider);
-      await indexer.indexImage(savedFile);
+
+      for (final pickedFile in pickedFiles) {
+        try {
+          // 1. Copy image to app storage
+          final uuid = const Uuid().v4();
+          final extension = p.extension(pickedFile.path);
+          final newPath = p.join(directory.path, '$uuid$extension');
+          final savedFile = await File(pickedFile.path).copy(newPath);
+
+          // 2. Index Image
+          await indexer.indexImage(savedFile);
+        } catch (e) {
+          print('Failed to import ${pickedFile.path}: $e');
+        }
+      }
 
       // 3. Refresh list
       await search('');

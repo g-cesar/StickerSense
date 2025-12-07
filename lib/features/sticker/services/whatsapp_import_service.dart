@@ -1,8 +1,8 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:path/path.dart' as p;
+import 'package:file_picker/file_picker.dart';
 import '../../../core/services/image_indexer_service.dart';
 import '../../../core/services/rate_limiter.dart';
 import '../../../core/settings/settings_repository.dart';
@@ -23,7 +23,6 @@ class WhatsAppImportService {
   /// Returns the number of imported stickers.
   Future<int> importStickers() async {
     if (!Platform.isAndroid) {
-      debugPrint('WhatsApp import is only supported on Android.');
       return 0;
     }
 
@@ -32,8 +31,8 @@ class WhatsAppImportService {
       throw Exception('Storage permission denied.');
     }
 
-    // 2. Scan for stickers
-    final stickerFiles = await _scanWhatsAppFolders();
+    // 2. Let user select WhatsApp sticker folder
+    final stickerFiles = await _selectAndScanFolder();
     if (stickerFiles.isEmpty) {
       return 0;
     }
@@ -48,33 +47,20 @@ class WhatsAppImportService {
     RateLimiter? rateLimiter;
 
     if (useGeminiOnly) {
-      // Gemini-only mode: use rate limiter (5 RPM for free tier)
       rateLimiter = RateLimiter(maxRequestsPerMinute: 5);
-      debugPrint('📊 Gemini-only mode: Rate limiting enabled (5 RPM)');
-    } else {
-      debugPrint(
-        '⚡ Fast mode: No rate limiting (fallback to local after quota)',
-      );
     }
 
-    final total = stickerFiles.length;
     for (int i = 0; i < stickerFiles.length; i++) {
       final file = stickerFiles[i];
       try {
-        // Wait for rate limit slot if in Gemini-only mode
         if (rateLimiter != null) {
           await rateLimiter.waitForSlot();
         }
 
         await indexer.indexImage(file);
         count++;
-
-        // Log progress every 10 stickers
-        if (count % 10 == 0 || count == total) {
-          debugPrint('Progress: $count/$total stickers imported');
-        }
       } catch (e) {
-        debugPrint('Failed to import ${file.path}: $e');
+        // Silent fail for individual files
       }
     }
 
@@ -82,45 +68,39 @@ class WhatsAppImportService {
   }
 
   Future<bool> _requestPermissions() async {
-    // Android 13+ (SDK 33) needs READ_MEDIA_IMAGES
-    // Older needs READ_EXTERNAL_STORAGE
-    // permission_handler handles SDK checks internally mostly, but 'storage' maps to READ_EXTERNAL_STORAGE.
-    // 'photos' maps to READ_MEDIA_IMAGES on 13+.
-
     Map<Permission, PermissionStatus> statuses =
-        await [
-          Permission.storage,
-          Permission.photos, // For Android 13+ images
-          // Permission.manageExternalStorage, // Only if absolutely needed (Android 11+ broad access), try to avoid.
-        ].request();
+        await [Permission.storage, Permission.photos].request();
 
-    // Check if at least one relevant permission is granted
     return statuses[Permission.storage]?.isGranted == true ||
         statuses[Permission.photos]?.isGranted == true;
   }
 
-  Future<List<File>> _scanWhatsAppFolders() async {
-    final List<String> potentialPaths = [
-      '/storage/emulated/0/WhatsApp/Media/WhatsApp Stickers',
-      '/storage/emulated/0/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Stickers',
-      '/storage/emulated/0/Android/media/com.whatsapp.w4b/WhatsApp Business/Media/WhatsApp Business Stickers',
-    ];
+  /// Opens a folder picker and scans for .webp files
+  Future<List<File>> _selectAndScanFolder() async {
+    try {
+      // Use file_picker to select a directory
+      String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
 
-    List<File> foundStickers = [];
-
-    for (final path in potentialPaths) {
-      final directory = Directory(path);
-      if (await directory.exists()) {
-        try {
-          final files = directory.listSync().whereType<File>().where((file) {
-            return p.extension(file.path).toLowerCase() == '.webp';
-          });
-          foundStickers.addAll(files);
-        } catch (e) {
-          debugPrint('Error scanning $path: $e');
-        }
+      if (selectedDirectory == null) {
+        return []; // User cancelled
       }
+
+      final directory = Directory(selectedDirectory);
+      if (!await directory.exists()) {
+        return [];
+      }
+
+      // Scan for .webp files
+      final allFiles = directory.listSync(recursive: true);
+      final webpFiles =
+          allFiles
+              .whereType<File>()
+              .where((file) => p.extension(file.path).toLowerCase() == '.webp')
+              .toList();
+
+      return webpFiles;
+    } catch (e) {
+      return [];
     }
-    return foundStickers;
   }
 }
