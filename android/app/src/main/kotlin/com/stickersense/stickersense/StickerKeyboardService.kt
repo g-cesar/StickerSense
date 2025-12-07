@@ -1,4 +1,4 @@
-package com.stickersense
+package com.stickersense.stickersense
 
 import android.content.ClipDescription
 import android.content.ContentResolver
