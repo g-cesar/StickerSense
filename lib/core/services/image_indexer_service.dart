@@ -51,13 +51,10 @@ class ImageIndexerService {
 
     if (apiKey != null && apiKey.isNotEmpty) {
       // --- GEMINI MODE (Online, Smart) ---
-      print('🚀 Using Gemini AI for indexing...');
+      print('🚀 Using Gemma AI for indexing...');
 
       try {
-        final model = GenerativeModel(
-          model: 'gemini-2.5-flash',
-          apiKey: apiKey,
-        );
+        final model = GenerativeModel(model: 'gemma-3-27b', apiKey: apiKey);
 
         final imageBytes = await imageFile.readAsBytes();
         final prompt = TextPart(
@@ -71,16 +68,16 @@ class ImageIndexerService {
 
         final text = response.text;
         if (text != null) {
-          print('Gemini Response: $text');
+          print('Gemma Response: $text');
           final tags = text.split(',').map((e) => e.trim().toLowerCase());
           keywords.addAll(tags);
         }
 
         // Also run local OCR to extract text from image (e.g. memes)
-        print('👓 Running local OCR to augment Gemini tags...');
+        print('👓 Running local OCR to augment Gemma tags...');
         await _performTextRecognition(inputImage, keywords);
       } catch (e) {
-        print('Gemini Error: $e. Falling back to local ML Kit.');
+        print('Gemma Error: $e. Falling back to local ML Kit.');
         // Fallback or just continue to add local tags?
         // Let's fall back to local if Gemini fails.
         await _indexLocally(inputImage, keywords);

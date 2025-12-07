@@ -10,9 +10,9 @@
 
 ## ✨ Features
 
-- **Hybrid AI Indexing** 🤖: Combines **Google Gemini 2.5 (Flash)** for high-level semantic understanding with **on-device OCR** for text extraction.
+- **Hybrid AI Indexing** 🤖: Combines **Google Gemma 3 27B** for high-level semantic understanding with **on-device OCR** for text extraction.
 - **Configurable Indexing Modes**:
-  - **"Più preciso, ma più lento"** (default): Uses only Gemini AI with rate limiting for maximum accuracy.
+  - **"Più preciso, ma più lento"** (default): Uses only Gemma AI with rate limiting for maximum accuracy.
   - **"Veloce"**: Fast mode with automatic fallback to local ML Kit after quota limits.
 - **WhatsApp Import** 📥 (Android): One-tap import of your existing WhatsApp sticker collection with automatic AI tagging.
 - **Smart Fallback**: Automatically reverts to local ML Kit (Labeling, Face Detection, Translation) if offline or API key is missing.
@@ -21,7 +21,7 @@
 - **Custom Keyboard** (Coming Soon): Access your stickers directly from any chatting app via a custom system keyboard.
 - **Modern UI**: Clean, responsive layout built with Flutter and Riverpod.
 
-## 🔑 Setup (Gemini AI)
+## 🔑 Setup (Gemma AI)
 
 1.  Get your API Key from [Google AI Studio](https://aistudio.google.com/).
 2.  Create a `.env` file in the root directory.
@@ -36,7 +36,7 @@
 - **State Management**: [Riverpod](https://riverpod.dev)
 - **Database**: [Drift](https://drift.simonbinder.eu) (SQLite)
 - **ML & AI**: 
-  - [Google Gemini AI](https://ai.google.dev) (Cloud-based semantic analysis)
+  - [Google Gemma 3 27B](https://ai.google.dev) (Cloud-based semantic analysis)
   - [Google ML Kit](https://developers.google.com/ml-kit) (On-device: Image Labeling, OCR, Face Detection, Translation)
 - **Architecture**: Clean Architecture + Feature-First structure.
 

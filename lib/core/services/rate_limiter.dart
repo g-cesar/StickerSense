@@ -2,7 +2,7 @@ import 'dart:async';
 
 /// A simple rate limiter that enforces a maximum number of requests per minute and per day.
 ///
-/// This is used to prevent exceeding Gemini API quota (5 RPM, 20 RPD for free tier).
+/// This is used to prevent exceeding Gemma API quota (30 RPM for free tier).
 class RateLimiter {
   final int maxRequestsPerMinute;
   final int maxRequestsPerDay;

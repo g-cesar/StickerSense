@@ -47,7 +47,7 @@ class WhatsAppImportService {
     RateLimiter? rateLimiter;
 
     if (useGeminiOnly) {
-      rateLimiter = RateLimiter(maxRequestsPerMinute: 5);
+      rateLimiter = RateLimiter(maxRequestsPerMinute: 30);
     }
 
     for (int i = 0; i < stickerFiles.length; i++) {
