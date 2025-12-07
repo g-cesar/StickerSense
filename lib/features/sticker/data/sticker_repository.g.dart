@@ -6,9 +6,14 @@ part of 'sticker_repository.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$stickerRepositoryHash() => r'a18e1e6a1f6ad6aaf67b659229e2b57f51e564e4';
+String _$stickerRepositoryHash() => r'790296a5e0c11446c893b106473dbef927ac8626';
 
-/// See also [StickerRepository].
+/// A Riverpod provider/repository that handles data operations for Stickers.
+///
+/// This repository abstracts the [AppDatabase] interactions, providing
+/// high-level methods to add and search stickers.
+///
+/// Copied from [StickerRepository].
 @ProviderFor(StickerRepository)
 final stickerRepositoryProvider =
     AutoDisposeNotifierProvider<StickerRepository, AppDatabase>.internal(

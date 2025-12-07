@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../settings/presentation/settings_screen.dart';
+import '../services/whatsapp_import_service.dart';
 import 'sticker_list_controller.dart';
 import 'widgets/sticker_masonry_grid.dart';
 
@@ -38,6 +41,62 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('StickerSense'),
+        actions: [
+          IconButton(
+            tooltip: 'Impostazioni',
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            },
+          ),
+          if (Platform.isAndroid)
+            IconButton(
+              tooltip: 'Importa da WhatsApp',
+              icon: const Icon(
+                Icons.dataset_linked,
+              ), // Or chat_bubble, download
+              onPressed: () async {
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                try {
+                  // Show loading
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Ricerca e importazione sticker WhatsApp in corso... ⏳',
+                      ),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+
+                  // Trigger import
+                  final count =
+                      await ref
+                          .read(whatsAppImportServiceProvider)
+                          .importStickers();
+
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text('Importati $count sticker! 🎉'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+
+                  // Refresh list if needed (provider invalidation usually handles this if repo updates)
+                  ref.invalidate(stickerListControllerProvider);
+                } catch (e) {
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text('Errore importazione: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+            ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Padding(

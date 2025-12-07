@@ -11,6 +11,10 @@
 ## ✨ Features
 
 - **Hybrid AI Indexing** 🤖: Combines **Google Gemini 2.5 (Flash)** for high-level semantic understanding with **on-device OCR** for text extraction.
+- **Configurable Indexing Modes**:
+  - **"Più preciso, ma più lento"** (default): Uses only Gemini AI with rate limiting (5 RPM) for maximum accuracy.
+  - **"Veloce"**: Fast mode with automatic fallback to local ML Kit after quota limits.
+- **WhatsApp Import** 📥 (Android): One-tap import of your existing WhatsApp sticker collection with automatic AI tagging.
 - **Smart Fallback**: Automatically reverts to local ML Kit (Labeling, Face Detection, Translation) if offline or API key is missing.
 - **Local-First Privacy**: All images stay on your device. Only metadata is processed by Gemini (if enabled), while local indexing ensures 100% offline functionality.
 - **Fast Search**: Built on SQLite (Drift) with FTS5 for lightning-fast full-text search capabilities.
@@ -23,13 +27,17 @@
 2.  Create a `.env` file in the root directory.
 3.  Add your key: `GEMINI_API_KEY=your_api_key_here`.
 
+> **Note**: The free tier (5 RPM, 250K TPM) is sufficient for personal use. The app automatically handles rate limiting when "Più preciso" mode is enabled.
+
 
 ## 🛠️ Tech Stack
 
 - **Framework**: [Flutter](https://flutter.dev)
 - **State Management**: [Riverpod](https://riverpod.dev)
 - **Database**: [Drift](https://drift.simonbinder.eu) (SQLite)
-- **ML & AI**: [Google ML Kit](https://developers.google.com/ml-kit) (Image Labeling, Text Recognition)
+- **ML & AI**: 
+  - [Google Gemini AI](https://ai.google.dev) (Cloud-based semantic analysis)
+  - [Google ML Kit](https://developers.google.com/ml-kit) (On-device: Image Labeling, OCR, Face Detection, Translation)
 - **Architecture**: Clean Architecture + Feature-First structure.
 
 ## 🚀 Getting Started

@@ -7,9 +7,14 @@ part of 'sticker_list_controller.dart';
 // **************************************************************************
 
 String _$stickerListControllerHash() =>
-    r'682ed6f70696ba99ff3a49b8fcf7be7958c626af';
+    r'1b048d8b593794897ec720562fb52ed96f94d238';
 
-/// See also [StickerListController].
+/// Manages the list of stickers displayed in the UI.
+///
+/// This controller handles data fetching, searching, and importing new stickers.
+/// It exposes the current list of [Sticker]s as an [AsyncValue].
+///
+/// Copied from [StickerListController].
 @ProviderFor(StickerListController)
 final stickerListControllerProvider = AutoDisposeAsyncNotifierProvider<
     StickerListController, List<Sticker>>.internal(

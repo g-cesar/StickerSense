@@ -1,31 +1,29 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'image_indexer_service.dart';
+part of 'settings_repository.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$imageIndexerServiceHash() =>
-    r'c85c7a3192fec6eec52d775b7a8a3d1a5a4ac215';
+String _$settingsRepositoryHash() =>
+    r'0203e31bb994214ce864bf95a7afa14a8a14b812';
 
-/// A Riverpod provider for the [ImageIndexerService].
-///
-/// Copied from [imageIndexerService].
-@ProviderFor(imageIndexerService)
-final imageIndexerServiceProvider =
-    AutoDisposeProvider<ImageIndexerService>.internal(
-  imageIndexerService,
-  name: r'imageIndexerServiceProvider',
+/// See also [settingsRepository].
+@ProviderFor(settingsRepository)
+final settingsRepositoryProvider =
+    AutoDisposeProvider<SettingsRepository>.internal(
+  settingsRepository,
+  name: r'settingsRepositoryProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$imageIndexerServiceHash,
+      : _$settingsRepositoryHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef ImageIndexerServiceRef = AutoDisposeProviderRef<ImageIndexerService>;
+typedef SettingsRepositoryRef = AutoDisposeProviderRef<SettingsRepository>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
