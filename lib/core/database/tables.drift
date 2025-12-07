@@ -1,0 +1,11 @@
+CREATE TABLE stickers (
+    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    file_path TEXT NOT NULL,
+    usage_count INT NOT NULL DEFAULT 0,
+    added_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE search_index (
+    sticker_id INT NOT NULL,
+    content TEXT NOT NULL
+);
