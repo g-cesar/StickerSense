@@ -10,13 +10,15 @@
 
 ## ✨ Features
 
-- **Hybrid AI Indexing** 🤖: Combines **Google Gemma 3 27B** for high-level semantic understanding with **on-device OCR** for text extraction.
-- **Configurable Indexing Modes**:
-  - **"Più preciso, ma più lento"** (default): Uses only Gemma AI with rate limiting for maximum accuracy.
-  - **"Veloce"**: Fast mode with automatic fallback to local ML Kit after quota limits.
-- **WhatsApp Import** 📥 (Android): One-tap import of your existing WhatsApp sticker collection with automatic AI tagging.
-- **Smart Fallback**: Automatically reverts to local ML Kit (Labeling, Face Detection, Translation) if offline or API key is missing.
-- **Local-First Privacy**: All images stay on your device. Only metadata is processed by Gemini (if enabled), while local indexing ensures 100% offline functionality.
+- **Dual AI Modes** 🤖:
+  - **Cloud API** (default): Uses Gemma 3 27B via Google AI API for maximum quality (30 RPM limit)
+  - **On-Device**: Downloads Gemma 3 Nano E4B (~4.4GB) for unlimited, offline AI tagging
+- **Hybrid AI Indexing**: Combines AI analysis with **on-device OCR** for text extraction from memes.
+- **WhatsApp Import** 📥 (Android): Folder picker to import your existing WhatsApp sticker collection with automatic AI tagging.
+- **Smart Fallback**: Automatically reverts to local ML Kit (Labeling, Face Detection, Translation) if AI fails or is offline.
+- **Full-Text Search** 🔍: Instant search across all indexed stickers using SQLite FTS5.
+- **Custom Keyboard** (Coming Soon): Access your stickers directly from any chatting app via a custom system keyboard.
+- **Modern UI**: Clean, responsive layout built with Flutter and Riverpod.nsures 100% offline functionality.
 - **Fast Search**: Built on SQLite (Drift) with FTS5 for lightning-fast full-text search capabilities.
 - **Custom Keyboard** (Coming Soon): Access your stickers directly from any chatting app via a custom system keyboard.
 - **Modern UI**: Clean, responsive layout built with Flutter and Riverpod.

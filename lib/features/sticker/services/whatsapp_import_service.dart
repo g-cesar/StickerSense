@@ -5,7 +5,8 @@ import 'package:path/path.dart' as p;
 import 'package:file_picker/file_picker.dart';
 import '../../../core/services/image_indexer_service.dart';
 import '../../../core/services/rate_limiter.dart';
-import '../../../core/settings/settings_repository.dart';
+import '../../../core/settings/ai_mode_settings.dart';
+import '../data/sticker_repository.dart';
 
 part 'whatsapp_import_service.g.dart';
 
@@ -37,33 +38,63 @@ class WhatsAppImportService {
       return 0;
     }
 
-    // 3. Check user settings
-    final settingsRepo = _ref.read(settingsRepositoryProvider);
-    final useGeminiOnly = await settingsRepo.getUseGeminiOnly();
+    print('📂 Found ${stickerFiles.length} .webp files in selected folder');
 
-    // 4. Process Import with optional rate limiting
+    // 3. Check AI mode (Cloud API requires rate limiting)
+    final aiModeSettings = AIModeSettings();
+    final aiMode = await aiModeSettings.getAIMode();
+
+    // 4. Load existing stickers ONCE (not in loop!)
+    final repository = _ref.read(stickerRepositoryProvider.notifier);
+    final existingStickers = await repository.searchStickers('');
+    final existingPaths = existingStickers.map((s) => s.filePath).toSet();
+
+    print('📊 Already have ${existingPaths.length} stickers in database');
+
+    // 5. Process Import with optional rate limiting
     int count = 0;
+    int skipped = 0;
     final indexer = _ref.read(imageIndexerServiceProvider);
     RateLimiter? rateLimiter;
 
-    if (useGeminiOnly) {
+    // Only rate limit for Cloud API mode
+    if (aiMode == AIMode.cloudAPI) {
       rateLimiter = RateLimiter(maxRequestsPerMinute: 30);
+      print('☁️ Using Cloud API mode with rate limiting (30 RPM)');
+    } else {
+      print('📱 Using On-Device mode (no rate limiting)');
     }
 
     for (int i = 0; i < stickerFiles.length; i++) {
       final file = stickerFiles[i];
+
       try {
+        // Check if already imported (O(1) lookup with Set)
+        if (existingPaths.contains(file.path)) {
+          print('⏭️  Skipping duplicate: ${p.basename(file.path)}');
+          skipped++;
+          continue;
+        }
+
         if (rateLimiter != null) {
           await rateLimiter.waitForSlot();
         }
 
+        print(
+          '🔄 Indexing [${i + 1}/${stickerFiles.length}]: ${p.basename(file.path)}',
+        );
         await indexer.indexImage(file);
+
+        // Add to existingPaths to avoid re-importing if same file appears twice
+        existingPaths.add(file.path);
         count++;
       } catch (e) {
-        // Silent fail for individual files
+        print('❌ Error indexing ${p.basename(file.path)}: $e');
+        // Continue with next file
       }
     }
 
+    print('✅ Import complete: $count imported, $skipped skipped');
     return count;
   }
 

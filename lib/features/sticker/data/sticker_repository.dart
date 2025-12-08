@@ -94,18 +94,40 @@ class StickerRepository extends _$StickerRepository {
 
   /// Deletes a sticker from the database and the filesystem.
   Future<void> deleteSticker({required int id, required String path}) async {
-    return state.transaction(() async {
-      // 1. Delete from database
-      await (state.delete(state.stickers)..where((t) => t.id.equals(id))).go();
-      await (state.delete(state.searchIndex)
-        ..where((t) => t.stickerId.equals(id))).go();
+    try {
+      return state.transaction(() async {
+        print('🗑️ Deleting sticker ID: $id, path: $path');
 
-      // 2. Delete file
-      final file = File(path);
-      if (await file.exists()) {
-        await file.delete();
-      }
-    });
+        // 1. Delete from database
+        final deletedStickers =
+            await (state.delete(state.stickers)
+              ..where((t) => t.id.equals(id))).go();
+        final deletedIndex =
+            await (state.delete(state.searchIndex)
+              ..where((t) => t.stickerId.equals(id))).go();
+
+        print(
+          '   Deleted $deletedStickers sticker(s), $deletedIndex index(es)',
+        );
+
+        // 2. Delete file (handle missing files gracefully)
+        try {
+          final file = File(path);
+          if (await file.exists()) {
+            await file.delete();
+            print('   ✅ File deleted: $path');
+          } else {
+            print('   ⚠️  File not found (already deleted): $path');
+          }
+        } catch (e) {
+          // File deletion failed, but DB cleanup succeeded
+          print('   ⚠️  Could not delete file (may be already deleted): $e');
+        }
+      });
+    } catch (e) {
+      print('❌ Error deleting sticker: $e');
+      rethrow;
+    }
   }
 
   /// Fetches the indexed tags (keywords) for a specific sticker.

@@ -74,9 +74,18 @@ class StickerListController extends _$StickerListController {
 
   /// Deletes a sticker and refreshes the list.
   Future<void> deleteSticker(Sticker sticker) async {
-    final repository = ref.read(stickerRepositoryProvider.notifier);
-    await repository.deleteSticker(id: sticker.id, path: sticker.filePath);
-    await search('');
+    try {
+      final repository = ref.read(stickerRepositoryProvider.notifier);
+      await repository.deleteSticker(id: sticker.id, path: sticker.filePath);
+
+      // Refresh the list to show all stickers
+      await search('');
+
+      print('✅ Successfully deleted sticker: ${sticker.filePath}');
+    } catch (e) {
+      print('❌ Failed to delete sticker: $e');
+      rethrow;
+    }
   }
 
   /// Fetches tags for a given sticker.

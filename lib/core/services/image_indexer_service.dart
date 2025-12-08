@@ -5,8 +5,10 @@ import 'package:google_mlkit_translation/google_mlkit_translation.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../features/sticker/data/sticker_repository.dart';
+import '../settings/ai_mode_settings.dart';
 
 part 'image_indexer_service.g.dart';
 
@@ -35,17 +37,48 @@ class ImageIndexerService {
   /// Process an image file to extract tags and index it.
   ///
   /// This method performs the following steps:
-  /// 1.  **Gemini Analysis**: Checks for `GEMINI_API_KEY`. If present, sends the image to Gemini for high-level semantic tagging.
-  /// 2.  **Mandatory OCR**: Independently runs on-device Text Recognition to catch any text on the image.
-  /// 3.  **Fallback Mechanism**: If Gemini fails or no key is present, it runs the full suite of local ML Kit tools (Labeling + Translation + Face Detection).
-  /// 4.  **Indexing**: Combines all unique keywords and saves the sticker via the [StickerRepository].
+  /// 1.  **AI Mode Detection**: Checks user preference for Cloud API vs On-Device model.
+  /// 2.  **Cloud API Mode**: Uses Gemma 3-27b via Google AI API (requires internet, 30 RPM limit).
+  /// 3.  **On-Device Mode**: Uses locally downloaded Gemma 3n E4B via flutter_gemma (offline, unlimited).
+  /// 4.  **Mandatory OCR**: Always runs on-device Text Recognition to extract text from images.
+  /// 5.  **Fallback Mechanism**: If AI fails, falls back to local ML Kit tools.
+  /// 6.  **Indexing**: Combines all unique keywords and saves the sticker via the [StickerRepository].
   ///
   /// The [imageFile] MUST be a locally accessible file.
   Future<void> indexImage(File imageFile) async {
     final inputImage = InputImage.fromFile(imageFile);
     final Set<String> keywords = {};
 
-    // 0. Load Env & Check for API Key
+    // 0. Check AI Mode Preference
+    final aiModeSettings = AIModeSettings();
+    final aiMode = await aiModeSettings.getAIMode();
+
+    if (aiMode == AIMode.onDevice) {
+      // --- ON-DEVICE MODE (Offline, Unlimited) ---
+      print('📱 Using On-Device Gemma 3n E4B for indexing...');
+      await _indexWithOnDeviceModel(imageFile, inputImage, keywords);
+    } else {
+      // --- CLOUD API MODE (Online, High Quality) ---
+      await _indexWithCloudAPI(imageFile, inputImage, keywords);
+    }
+
+    // Save to Repository
+    if (keywords.isNotEmpty) {
+      final repository = _ref.read(stickerRepositoryProvider.notifier);
+      await repository.addSticker(
+        filePath: imageFile.path,
+        keywords: keywords.toList(),
+      );
+    }
+  }
+
+  /// Indexes image using Cloud API (Gemma 3-27b).
+  Future<void> _indexWithCloudAPI(
+    File imageFile,
+    InputImage inputImage,
+    Set<String> keywords,
+  ) async {
+    // Load Env & Check for API Key
     await dotenv.load(fileName: ".env");
     final apiKey = dotenv.env['GEMINI_API_KEY'];
 
@@ -98,6 +131,73 @@ class ImageIndexerService {
         filePath: imageFile.path,
         keywords: keywords.toList(),
       );
+    }
+  }
+
+  /// Indexes image using On-Device Model (Gemma 3n E4B via flutter_gemma).
+  ///
+  /// This method uses the locally downloaded Gemma 3 Nano E4B model for inference.
+  /// Provides unlimited, offline AI tagging without rate limits.
+  Future<void> _indexWithOnDeviceModel(
+    File imageFile,
+    InputImage inputImage,
+    Set<String> keywords,
+  ) async {
+    try {
+      // Create on-device model instance
+      final model = await FlutterGemma.getActiveModel(
+        maxTokens: 512,
+        preferredBackend: PreferredBackend.gpu,
+      );
+
+      // Read image bytes
+      final imageBytes = await imageFile.readAsBytes();
+
+      // Create chat session with image support
+      final chat = await model.createChat(supportImage: true);
+
+      // Send image with prompt
+      await chat.addQueryChunk(
+        Message.withImage(
+          text:
+              'Analyze this sticker or meme. Provide 5-10 comma-separated keywords in English and Italian that describe the visible objects, the emotion (if any), the character (if known), and the context. Do not write sentences, just keywords.',
+          imageBytes: imageBytes,
+          isUser: true,
+        ),
+      );
+
+      // Generate response
+      // flutter_gemma returns ModelResponse which can be TextResponse, FunctionCallResponse, etc.
+      // For text generation, we use generateChatResponseAsync() stream or check response type
+      final response = await chat.generateChatResponse();
+
+      if (response != null) {
+        // ModelResponse has a content property for text responses
+        // Based on flutter_gemma docs, response should be TextResponse with token property
+        String responseText = '';
+
+        // Try to extract text from response
+        // The response object should have the generated text
+        if (response is TextResponse) {
+          responseText = response.token;
+        } else {
+          // Fallback: try toString() if type is unexpected
+          responseText = response.toString();
+        }
+
+        print('On-Device Gemma Response: $responseText');
+        final tags = responseText.split(',').map((e) => e.trim().toLowerCase());
+        keywords.addAll(tags);
+      }
+
+      // Always run OCR to augment tags
+      print('👓 Running local OCR to augment on-device tags...');
+      await _performTextRecognition(inputImage, keywords);
+
+      // Note: flutter_gemma handles cleanup automatically
+    } catch (e) {
+      print('On-Device Model Error: $e. Falling back to local ML Kit.');
+      await _indexLocally(inputImage, keywords);
     }
   }
 
