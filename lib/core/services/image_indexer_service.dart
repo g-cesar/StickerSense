@@ -121,17 +121,8 @@ class ImageIndexerService {
       await _indexLocally(inputImage, keywords);
     }
 
-    // 3. Save to Repository
-    // We assume the file is already in the persistent location.
-    // If not, it should be copied there before indexing.
-    // For now, we just use the path provided.
-    if (keywords.isNotEmpty) {
-      final repository = _ref.read(stickerRepositoryProvider.notifier);
-      await repository.addSticker(
-        filePath: imageFile.path,
-        keywords: keywords.toList(),
-      );
-    }
+    // Note: addSticker is called in the main indexImage method
+    // Don't call it here to avoid duplicates
   }
 
   /// Indexes image using On-Device Model (Gemma 3n E4B via flutter_gemma).

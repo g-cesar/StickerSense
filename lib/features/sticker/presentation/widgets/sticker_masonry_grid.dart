@@ -1,14 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:clipboard/clipboard.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../core/database/database.dart';
 
 /// A reusable widget to display a collection of stickers in a masonry grid layout.
 ///
 /// If [stickers] is empty, it displays a placeholder message.
-/// Tap on a sticker to copy it to clipboard.
+/// Tap on a sticker to share it to WhatsApp, Telegram, or any other app.
 /// Long press on a sticker to show details and delete option.
 class StickerMasonryGrid extends StatelessWidget {
   final List<Sticker> stickers;
@@ -20,11 +19,8 @@ class StickerMasonryGrid extends StatelessWidget {
     required this.onStickerLongPress,
   });
 
-  /// Copies the sticker image to clipboard
-  Future<void> _copyStickerToClipboard(
-    BuildContext context,
-    Sticker sticker,
-  ) async {
+  /// Shares the sticker image to other apps (WhatsApp, Telegram, etc.)
+  Future<void> _shareSticker(BuildContext context, Sticker sticker) async {
     try {
       final file = File(sticker.filePath);
       if (!await file.exists()) {
@@ -39,27 +35,28 @@ class StickerMasonryGrid extends StatelessWidget {
         return;
       }
 
-      // Read image bytes
-      final bytes = await file.readAsBytes();
+      // Share the image file directly
+      // This opens the Android share sheet with all apps that can handle images
+      final result = await Share.shareXFiles([
+        XFile(sticker.filePath),
+      ], text: 'Sticker da StickerSense');
 
-      // Copy to clipboard using clipboard package
-      await FlutterClipboard.copyBinary('image/webp', bytes);
-
-      if (context.mounted) {
+      // Show feedback only if sharing was successful
+      if (result.status == ShareResultStatus.success && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('✅ Sticker copiato negli appunti!'),
-            duration: Duration(seconds: 2),
+            content: Text('✅ Sticker condiviso!'),
+            duration: Duration(seconds: 1),
             behavior: SnackBarBehavior.floating,
           ),
         );
       }
     } catch (e) {
-      print('Error copying sticker to clipboard: $e');
+      print('Error sharing sticker: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Errore: ${e.toString()}'),
+            content: Text('❌ Errore nella condivisione: ${e.toString()}'),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -84,7 +81,7 @@ class StickerMasonryGrid extends StatelessWidget {
       itemBuilder: (context, index) {
         final sticker = stickers[index];
         return GestureDetector(
-          onTap: () => _copyStickerToClipboard(context, sticker),
+          onTap: () => _shareSticker(context, sticker),
           onLongPress: () => onStickerLongPress(sticker),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),

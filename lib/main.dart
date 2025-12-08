@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gemma/flutter_gemma.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'features/sticker/presentation/dashboard_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'core/settings/ai_mode_settings.dart';
@@ -30,12 +31,30 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Custom brand color: rgb(47,60,84)
+    const brandColor = Color.fromRGBO(47, 60, 84, 1.0);
+
     return MaterialApp(
       title: 'StickerSense',
+      // Light Theme
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: brandColor,
+          brightness: Brightness.light,
+        ),
         useMaterial3: true,
+        textTheme: GoogleFonts.quicksandTextTheme(ThemeData.light().textTheme),
       ),
+      // Dark Theme
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: brandColor,
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
+        textTheme: GoogleFonts.quicksandTextTheme(ThemeData.dark().textTheme),
+      ),
+      themeMode: ThemeMode.system, // Follow system theme
       home: const InitialScreen(),
       routes: {
         '/dashboard': (context) => const DashboardScreen(),

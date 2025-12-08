@@ -39,7 +39,8 @@ dependencies:
   shared_preferences: ^2.5.3
   file_picker: ^10.3.7
   flutter_gemma: ^0.11.13
-  clipboard: ^0.1.3
+  share_plus: ^10.1.4
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:
@@ -47,13 +48,25 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   
   # Code Generation
-  build_runner: ^2.4.8
-  drift_dev: ^2.20.0
-  riverpod_generator: ^2.4.0
-  riverpod_lint: ^2.3.10
-  custom_lint: ^0.6.4
+  build_runner: ^2.4.13
+  drift_dev: ^2.26.0
+  riverpod_generator: ^2.6.1
+  riverpod_lint: ^2.6.1
+  custom_lint: ^0.6.10
+  
+  # App Icon & Splash
+  flutter_launcher_icons: ^0.14.1
 
 flutter:
   uses-material-design: true
   assets:
     - .env
+    - assets/images/
+
+# App Icon Configuration
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/images/stickersense_icon.png"
+  adaptive_icon_background: "#2F3C54"  # rgb(47,60,84)
+  adaptive_icon_foreground: "assets/images/stickersense_icon.png"

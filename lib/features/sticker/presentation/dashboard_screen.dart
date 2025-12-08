@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/widgets/stickersense_logo.dart';
 import '../../settings/presentation/settings_screen.dart';
 import '../services/whatsapp_import_service.dart';
 import 'sticker_list_controller.dart';
@@ -40,7 +41,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('StickerSense'),
+        title: const StickerSenseLogo(fontSize: 22),
         actions: [
           IconButton(
             tooltip: 'Impostazioni',
